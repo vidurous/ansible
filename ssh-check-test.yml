@@ -1,0 +1,17 @@
+- name: check ssh
+  hosts: all
+  become: true
+
+  tasks:
+  - name: Start sshd
+    service:
+      name: sshd
+      state: started
+  
+  - name: read the passwd file
+    shell: cat /etc/passwd
+    register: user_accts
+
+  - name: a task that only happens if the user exists
+    when: user_accts.stdout.find('root') != -1
+    debug: msg="user exists"
