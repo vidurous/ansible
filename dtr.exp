@@ -3,7 +3,7 @@
 set timeout 50
 global env
 set UCP $env(UCP)
-set PASSWORD $env(PASSWORD)
+set PASSWORD $env(PASSWORD) 
 
 log_user 10
 proc color {foreground text} {
@@ -28,20 +28,27 @@ proc color {foreground text} {
        send -- "r\"
 
      } else {
-     send_user "finished\n"
+       
+       send_user "finished\n"
 }
 
 spawn ssh root@$UCP "docker swarm join-token worker"
-expect -re "docker swarm join --token *"
+expect (.*) (.*) (.*) (.*) (.*)
 
-set output $expect_out(0,string)
-send "$expect_out(buffer)"
-set token [regexp -all { SWMTKN-1-* } $output match token]
+set buffer $expect_out(buffer)
+set token [regexp -all { docker swarm join (.*)-(.*)-(.*)-(.*) (.*):(.*)} $buffer match start cmd token1 token2 ip]
 
-puts "token: $token"
+puts "start: $start"
+puts "cmd: $cmd"
+puts "token1: $token1"
+puts "token2: $token2"
+puts "ip: $ip"
+send_user "\n command looks like: \n # docker swarm join --token SWMTKN-$cmd-$token1-$token2 $ip \n"
+
    if {$token == 1} {
 
-      send_user "\n token: $token\n"
+      spawn /usr/bin/docker swarm join --token SWMTKN-$cmd-$token1-$token2 $ip
+      interact                                   
 
    } else {
       send_user "\nFAILURE TO MATCH HIT\n"
