@@ -1,6 +1,8 @@
-- name: prep ucp cluster for install
-  hosts: ucp
+---
+- hosts: dtr
   become: True
+
+  tasks:
 
   - name: Add repository
     yum_repository:
@@ -10,24 +12,22 @@
       enabled: yes
       gpgcheck: no
 
-  tasks:
   - name: httpd ntpd nfs-utils bind-utils lvm2 yum-utils device-mapper-persistent-data
-  yum:
+    yum: state=present name={{ item }}
     with_items:
-    -  httpd
-    -  ntpd
-    -  nfs-utils
-    -  bind-utils
-    -  lvm2
-    -  yum-utils
-    -  device-mapper-peristent-data
-    -  docker-ee
-    state: latest
+      - httpd
+      - ntp
+      - nfs-utils
+      - bind-utils
+      - lvm2
+      - yum-utils
+      - device-mapper-persistent-data
+      - docker-ee
       
   - name: enable service httpd and ensure it is not masked
-  systemd:
+    systemd: name={{ item }}
     with_items:
-    - ntp
-    - docker
+      - ntp
+      - docker
     enabled: yes
     masked: no
