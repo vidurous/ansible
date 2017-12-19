@@ -1,0 +1,33 @@
+- name: prep ucp cluster for install
+  hosts: ucp
+  become: True
+
+  - name: Add repository
+    yum_repository:
+      name: docker-ee
+      description: docker-ee
+      baseurl: http://foreman.irondung.net:8120/repos/docker-ee-stable-17.06
+      enabled: yes
+      gpgcheck: no
+
+  tasks:
+  - name: httpd ntpd nfs-utils bind-utils lvm2 yum-utils device-mapper-persistent-data
+  yum:
+    with_items:
+    -  httpd
+    -  ntpd
+    -  nfs-utils
+    -  bind-utils
+    -  lvm2
+    -  yum-utils
+    -  device-mapper-peristent-data
+    -  docker-ee
+    state: latest
+      
+  - name: enable service httpd and ensure it is not masked
+  systemd:
+    with_items:
+    - ntp
+    - docker
+    enabled: yes
+    masked: no
