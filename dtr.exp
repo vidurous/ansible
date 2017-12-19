@@ -1,0 +1,49 @@
+#!/usr/bin/expect --
+
+set timeout 50
+global env
+set UCP $env(UCP)
+set PASSWORD $env(PASSWORD)
+
+log_user 10
+proc color {foreground text} {
+    return [exec tput setaf $foreground]$text[exec tput sgr0]
+}
+
+    if {![file exists /root/.ssh/id_rsa]} {
+
+       spawn ssh-keygen
+       expect -re {Enter file in which to save the key }
+       send -- "\r"
+       expect -re {Enter passphrase }
+       send -- "\r"
+       expect -re {Enter same passphrase again: }
+       send -- "\r"
+
+       send_user "\n SSH KEYS FOUND! SENDING THEM TO UCP \n"
+       spawn ssh-copy-id -f root@$UCP
+       expect "Password:"
+       send "$PASSWORD\r"
+       expect "INFO:"
+       send -- "r\"
+
+     } else {
+     send_user "finished\n"
+}
+
+spawn ssh root@$UCP "docker swarm join-token worker"
+expect -re "docker swarm join --token *"
+
+set output $expect_out(0,string)
+send "$expect_out(buffer)"
+set token [regexp -all { SWMTKN-1-* } $output match token]
+
+puts "token: $token"
+   if {$token == 1} {
+
+      send_user "\n token: $token\n"
+
+   } else {
+      send_user "\nFAILURE TO MATCH HIT\n"
+      exit 0
+}
