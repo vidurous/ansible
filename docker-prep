@@ -31,3 +31,10 @@
       - docker
     enabled: yes
     masked: no
+
+  - name: stop firewalld
+    systemd: 
+      name: firewalld 
+      state: stopped
+      enabled: no
+
